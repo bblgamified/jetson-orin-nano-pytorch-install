@@ -25,7 +25,8 @@ Expected:
 Python 3.10.x
 Architecture aarch64
 CUDA 12.6
-2. Activate your Python environment
+
+## 2. Activate your Python environment
 
 If you are using a virtual environment, activate it first.
 
@@ -37,12 +38,15 @@ source comfy/bin/activate
 Confirm the interpreter:
 
 python3 -c "import sys; print(sys.executable)"
-3. Remove old PyTorch packages
+
+## 3. Remove old PyTorch packages
 pip3 uninstall -y torch torchvision torchaudio
 pip3 cache purge
-4. Install a compatible NumPy version
+
+## 4. Install a compatible NumPy version
 pip3 install "numpy<2"
-5. Install PyTorch from the Jetson AI Lab CUDA 12.6 index
+
+## 5. Install PyTorch from the Jetson AI Lab CUDA 12.6 index
 pip3 install --no-cache-dir \
   --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 \
   torch==2.11.0 \
@@ -53,7 +57,8 @@ Optional audio package:
 pip3 install --no-cache-dir \
   --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 \
   torchaudio==2.10.0
-6. Install CuDSS runtime dependency
+
+## 6. Install CuDSS runtime dependency
 
 The current torch==2.11.0 CUDA 12.6 build requires libcudss.so.0.
 
@@ -76,7 +81,8 @@ Optional cleanup:
 
 cd ~
 rm -rf ~/tmp_cudss
-7. Verify CuDSS is installed
+
+## 7. Verify CuDSS is installed
 ls -l /usr/local/cuda-12.6/lib64/libcudss.so*
 sudo ldconfig -p | grep cudss
 
@@ -85,7 +91,8 @@ You should see entries for:
 libcudss.so
 libcudss.so.0
 libcudss.so.0.6.0
-8. Verify PyTorch is using the GPU
+
+## 8. Verify PyTorch is using the GPU
 python3 - <<'PY'
 import torch
 print("torch:", torch.__version__)
@@ -99,7 +106,8 @@ Expected output:
 torch: 2.11.0
 cuda: True
 device: Orin
-9. Full verification
+
+## 9. Full verification
 python3 - <<'PY'
 import torch, torchvision
 
