@@ -41,22 +41,17 @@ python3 -c "import sys; print(sys.executable)"
 
 ## 3. Remove old PyTorch packages
 pip3 uninstall -y torch torchvision torchaudio
-pip3 cache purge```
+pip3 cache purge
 
 ## 4. Install a compatible NumPy version
 pip3 install "numpy<2"
 
 ## 5. Install PyTorch from the Jetson AI Lab CUDA 12.6 index
-pip3 install --no-cache-dir \
-  --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 \
-  torch==2.11.0 \
-  torchvision==0.26.0
+pip3 install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torch==2.11.0 torchvision==0.26.0
 
 Optional audio package:
 
-pip3 install --no-cache-dir \
-  --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 \
-  torchaudio==2.10.0
+pip3 install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torchaudio==2.10.0
 
 ## 6. Install CuDSS runtime dependency
 
