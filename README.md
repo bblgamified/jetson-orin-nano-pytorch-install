@@ -24,7 +24,7 @@ Expected:
 
 Python 3.10.x
 Architecture aarch64
-CUDA 12.6
+CUDA 12.6```
 
 ## 2. Activate your Python environment
 
@@ -32,16 +32,16 @@ If you are using a virtual environment, activate it first.
 
 Example:
 
-cd ~/dev/retro-diffusion/ai
+```cd ~/dev/retro-diffusion/ai
 source comfy/bin/activate
 
 Confirm the interpreter:
 
-python3 -c "import sys; print(sys.executable)"
+python3 -c "import sys; print(sys.executable)"```
 
 ## 3. Remove old PyTorch packages
-pip3 uninstall -y torch torchvision torchaudio
-pip3 cache purge
+```pip3 uninstall -y torch torchvision torchaudio
+pip3 cache purge```
 
 ## 4. Install a compatible NumPy version
 pip3 install "numpy<2"
