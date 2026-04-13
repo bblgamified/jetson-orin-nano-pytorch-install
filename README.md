@@ -1,64 +1,84 @@
-# Install PyTorch with CUDA on Jetson Orin Nano (JetPack 6.2.1 / CUDA 12.6)
+# ComfyUI on Jetson Orin Nano (GPU Enabled)
+This guide installs **ComfyUI using the Jetson GPU** on:
 
-This guide installs a working GPU-enabled PyTorch setup on:
+- Jetson Orin Nano 8GB
+- JetPack 6.2.1
+- CUDA 12.6
+- Python 3.10
+- GPU PyTorch (Jetson AI Lab)
 
-- Jetson Orin Nano
-- JetPack `6.2.1+b38`
-- CUDA `12.6`
-- Python `3.10`
+This uses the PyTorch install from:
+https://github.com/bblgamified/jetson-orin-nano-pytorch-install
 
-This setup was verified with:
+---
 
-- `torch==2.11.0`
-- `torchvision==0.26.0`
-- `torchaudio==2.10.0`
+# 1. System Prep
 
-## 1. Confirm system versions
+```bash
+sudo apt update
+sudo apt install -y git python3-venv python3-pip python-is-python3
+```
 
-bash
-python3 --version
-uname -m
-nvcc --version
+---
 
-Expected:
+# 2. Create Working Directory
 
-Python 3.10.x
-Architecture aarch64
-CUDA 12.6
-
-## 2. Activate your Python environment
-
-If you are using a virtual environment, activate it first.
-
-Example:
-
+```bash
+mkdir -p ~/dev/retro-diffusion/ai
 cd ~/dev/retro-diffusion/ai
-source comfy/bin/activate
+```
 
-Confirm the interpreter:
+---
 
-python3 -c "import sys; print(sys.executable)"
+# 3. Create Python Virtual Environment
 
-## 3. Remove old PyTorch packages
-pip3 uninstall -y torch torchvision torchaudio
-pip3 cache purge
+```bash
+python3 -m venv comfy
+source ~/dev/retro-diffusion/ai/comfy/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+```
 
-## 4. Install a compatible NumPy version
-pip3 install "numpy<2"
+---
 
-## 5. Install PyTorch from the Jetson AI Lab CUDA 12.6 index
-pip3 install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torch==2.11.0 torchvision==0.26.0
+# 4. Install Jetson GPU PyTorch
 
-Optional audio package:
+Clone repo:
 
-pip3 install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torchaudio==2.10.0
+```bash
+cd ~/dev
+git clone https://github.com/bblgamified/jetson-orin-nano-pytorch-install.git
+cd jetson-orin-nano-pytorch-install
+```
 
-## 6. Install CuDSS runtime dependency
+Activate venv:
 
-The current torch==2.11.0 CUDA 12.6 build requires libcudss.so.0.
+```bash
+source ~/dev/retro-diffusion/ai/comfy/bin/activate
+```
 
-Create a temporary directory and download CuDSS:
+Remove old torch:
 
+```bash
+pip uninstall -y torch torchvision torchaudio
+pip cache purge
+pip install "numpy<2"
+```
+
+Install Jetson PyTorch:
+
+```bash
+pip install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torch==2.11.0 torchvision==0.26.0
+```
+
+Optional:
+
+```bash
+pip install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torchaudio==2.10.0
+```
+
+Install CuDSS:
+
+```bash
 mkdir -p ~/tmp_cudss
 cd ~/tmp_cudss
 
@@ -66,76 +86,153 @@ CUSPARSE_SOLVER_NAME="libcudss-linux-sbsa-0.6.0.5_cuda12-archive"
 curl -L -O "https://developer.download.nvidia.com/compute/cudss/redist/libcudss/linux-sbsa/${CUSPARSE_SOLVER_NAME}.tar.xz"
 tar xf "${CUSPARSE_SOLVER_NAME}.tar.xz"
 
-Copy the headers and libraries into CUDA 12.6:
-
 sudo cp -a "${CUSPARSE_SOLVER_NAME}"/include/* /usr/local/cuda-12.6/include/
 sudo cp -a "${CUSPARSE_SOLVER_NAME}"/lib/* /usr/local/cuda-12.6/lib64/
 sudo ldconfig
+```
 
-Optional cleanup:
+Verify GPU:
 
-cd ~
-rm -rf ~/tmp_cudss
-
-## 7. Verify CuDSS is installed
-ls -l /usr/local/cuda-12.6/lib64/libcudss.so*
-sudo ldconfig -p | grep cudss
-
-You should see entries for:
-
-libcudss.so
-libcudss.so.0
-libcudss.so.0.6.0
-
-## 8. Verify PyTorch is using the GPU
-python3 - <<'PY'
+```bash
+python - <<'PY'
 import torch
 print("torch:", torch.__version__)
-print("cuda:", torch.cuda.is_available())
+print("cuda available:", torch.cuda.is_available())
 if torch.cuda.is_available():
     print("device:", torch.cuda.get_device_name(0))
 PY
+```
 
-Expected output:
+---
 
-torch: 2.11.0
-cuda: True
-device: Orin
+# 5. Install ComfyUI
 
-## 9. Full verification
-python3 - <<'PY'
-import torch, torchvision
+```bash
+cd ~/dev/retro-diffusion/ai
+git clone https://github.com/comfyanonymous/ComfyUI.git
+cd ComfyUI
+```
 
-print("torch:", torch.__version__)
-print("torchvision:", torchvision.__version__)
-print("cuda:", torch.cuda.is_available())
-print("device:", torch.cuda.get_device_name(0))
+---
 
-x = torch.rand(4, 4, device="cuda")
-print("tensor device:", x.device)
+# 6. Install Requirements
+
+```bash
+source ~/dev/retro-diffusion/ai/comfy/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+# 7. Verify Torch Still Using GPU
+
+```bash
+python - <<'PY'
+import torch
+print("CUDA:", torch.cuda.is_available())
+print("Device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "none")
 PY
+```
 
-Expected output:
+If CUDA is false reinstall torch.
 
-torch: 2.11.0
-torchvision: 0.26.0
-cuda: True
-device: Orin
-tensor device: cuda:0
-Notes
-This uses the current Jetson AI Lab package index for jp6/cu126
-The PyTorch install may succeed before runtime works
-If import torch fails with:
-ImportError: libcudss.so.0: cannot open shared object file
+---
 
-that means CuDSS is missing and Step 6 is required
+# 8. Run ComfyUI (Jetson Recommended)
 
-Working package versions
-Jetson Orin Nano
-JetPack 6.2.1+b38
-CUDA 12.6
-Python 3.10
-torch 2.11.0
-torchvision 0.26.0
-torchaudio 2.10.0
-CuDSS runtime installed manually
+```bash
+cd ~/dev/retro-diffusion/ai/ComfyUI
+source ~/dev/retro-diffusion/ai/comfy/bin/activate
+python main.py --listen 0.0.0.0 --port 8188 --lowvram --force-fp16
+```
+
+Open:
+
+```
+http://JETSON_IP:8188
+```
+
+---
+
+# 9. Alternative Launch Options
+
+Safer VAE:
+
+```bash
+python main.py --listen 0.0.0.0 --port 8188 --lowvram --force-fp16 --fp32-vae
+```
+
+If CUDA issues:
+
+```bash
+python main.py --listen 0.0.0.0 --port 8188 --lowvram --force-fp16 --disable-cuda-malloc
+```
+
+---
+
+# 10. Model Directory
+
+Place models here:
+
+```
+~/dev/retro-diffusion/ai/ComfyUI/models/checkpoints/
+```
+
+---
+
+# 11. Run As Service (Optional)
+
+Create service:
+
+```bash
+sudo nano /etc/systemd/system/comfyui.service
+```
+
+Paste:
+
+```ini
+[Unit]
+Description=ComfyUI
+After=network.target
+
+[Service]
+User=robi
+WorkingDirectory=/home/robi/dev/retro-diffusion/ai/ComfyUI
+Environment="PATH=/home/robi/dev/retro-diffusion/ai/comfy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/robi/dev/retro-diffusion/ai/comfy/bin/python /home/robi/dev/retro-diffusion/ai/ComfyUI/main.py --listen 0.0.0.0 --port 8188 --lowvram --force-fp16
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now comfyui
+```
+
+Logs:
+
+```bash
+journalctl -u comfyui -f
+```
+
+---
+
+# 12. Update ComfyUI
+
+```bash
+cd ~/dev/retro-diffusion/ai/ComfyUI
+source ~/dev/retro-diffusion/ai/comfy/bin/activate
+git pull
+pip install -r requirements.txt
+```
+
+---
+
+# Done
+
+ComfyUI is now running with Jetson GPU acceleration.
